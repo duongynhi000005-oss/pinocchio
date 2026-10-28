@@ -182,7 +182,7 @@ where
     }
 
     #[inline(always)]
-    pub fn push(
+    pub(crate) fn push(
         &mut self,
         write_accounts: impl FnOnce(
             &mut [MaybeUninit<CpiAccount<'account>>],
@@ -192,7 +192,7 @@ where
         ) -> Result<usize, ProgramError>,
         write_data: impl FnOnce(&mut [MaybeUninit<u8>]) -> Result<usize, ProgramError>,
     ) -> ProgramResult {
-        // Ensure that there is enough space for another instruction.
+        // Ensure that there is enough space for another instruction header.
         if self.data_len + IX_HEADER_SIZE > self.data.len() {
             return Err(invalid_argument_error());
         }
@@ -204,6 +204,20 @@ where
         let written_instruction_accounts = write_instruction_accounts(
             &mut self.instruction_accounts[self.instruction_accounts_len..],
         )?;
+
+        // Ensure written lengths fit within u8 representation in the instruction header.
+        if written_instruction_accounts > u8::MAX as usize || written_data > u8::MAX as usize {
+            return Err(invalid_argument_error());
+        }
+
+        // Ensure written data and accounts do not exceed the remaining buffer capacities.
+        if self.data_len + IX_HEADER_SIZE + written_data > self.data.len()
+            || self.accounts_len + written_accounts > self.accounts.len()
+            || self.instruction_accounts_len + written_instruction_accounts
+                > self.instruction_accounts.len()
+        {
+            return Err(invalid_argument_error());
+        }
 
         // If all writes succeeded, update the lengths and write the instruction
         // header.

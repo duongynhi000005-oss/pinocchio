@@ -317,6 +317,9 @@ where
     'account: 'out,
     'multisig: 'out,
 {
+    if multisig_signers.len() > MAX_MULTISIG_SIGNERS {
+        return Err(invalid_argument_error());
+    }
     let expected_accounts = 3 + multisig_signers.len();
 
     if expected_accounts > accounts.len() {
@@ -355,6 +358,9 @@ where
     'account: 'out,
     'multisig: 'out,
 {
+    if multisig_signers.len() > MAX_MULTISIG_SIGNERS {
+        return Err(invalid_argument_error());
+    }
     let expected_accounts = 3 + multisig_signers.len();
 
     if expected_accounts > accounts.len() {
