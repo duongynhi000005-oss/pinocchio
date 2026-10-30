@@ -13,6 +13,7 @@ mod reallocate;
 pub use {
     create_native_mint::*,
     extensions::*,
+    get_account_data_size::*,
     initialize_non_transferable_mint::*,
     pinocchio_token::instructions::{
         batch::IntoBatch, initialize_multisig::MAX_MULTISIG_SIGNERS, set_authority::AuthorityType,
